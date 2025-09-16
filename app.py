@@ -24,29 +24,90 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizzato per i commenti didattici
+# CSS personalizzato per i commenti didattici e fix visualizzazione
 st.markdown("""
 <style>
+    /* Fix per le metriche con sfondo scuro */
+    [data-testid="metric-container"] {
+        background-color: #2a2a2a !important;
+        border: 1px solid #4a4a4a !important;
+        padding: 15px !important;
+        border-radius: 5px !important;
+        color: #f0f0f0 !important;
+    }
+    
+    [data-testid="metric-container"] > div {
+        color: #f0f0f0 !important;
+    }
+    
+    /* Fix per i valori delle metriche */
+    [data-testid="stMetricValue"] {
+        color: #00ff00 !important;
+        font-weight: bold !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #b0b0b0 !important;
+    }
+    
+    /* Fix per le tabelle */
+    .dataframe {
+        color: #f0f0f0 !important;
+        background-color: #2a2a2a !important;
+    }
+    
+    .dataframe td {
+        color: #f0f0f0 !important;
+        background-color: #2a2a2a !important;
+    }
+    
+    .dataframe th {
+        color: #f0f0f0 !important;
+        background-color: #1a1a1a !important;
+    }
+    
+    .dataframe tbody tr:hover {
+        background-color: #3a3a3a !important;
+    }
+    
+    /* Commenti didattici con tema scuro */
     .didactic {
-        background-color: #f0f8ff;
+        background-color: #1e3a5f;
         border-left: 5px solid #4682b4;
         padding: 15px;
         margin: 15px 0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-size: 1.1em;
         line-height: 1.6;
-        color: #333;
+        color: #e0e0e0;
         border-radius: 5px;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
     }
     .didactic strong {
-        color: #2c3e50;
+        color: #61dafb;
     }
-    .stMetric {
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    /* Fix per elementi streamlit */
+    .stButton > button {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        border: 1px solid #4a4a4a;
+    }
+    
+    .stButton > button:hover {
+        background-color: #3a3a3a;
+        border-color: #00ff00;
+    }
+    
+    /* Fix per selectbox e input */
+    .stSelectbox > div > div {
+        background-color: #2a2a2a !important;
+        color: #f0f0f0 !important;
+    }
+    
+    .stTextInput > div > div > input {
+        background-color: #2a2a2a !important;
+        color: #f0f0f0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -483,17 +544,33 @@ def main():
             
             st.dataframe(display_df, use_container_width=True)
             
-            # Statistiche
+            # Statistiche con stile personalizzato
             col1, col2, col3 = st.columns(3)
             with col1:
                 avg_corr = similar_years['correlation'].mean()
-                st.metric("Correlazione Media", f"{avg_corr:.3f}")
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Correlazione Media</p>
+                    <p style='color: #00ff00; margin: 5px 0; font-size: 24px; font-weight: bold;'>{avg_corr:.3f}</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col2:
                 avg_return = similar_years['year_return'].mean()
-                st.metric("Rendimento Medio Anni Simili", f"{avg_return:.1f}%")
+                color = "#00ff00" if avg_return > 0 else "#ff4444"
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Rendimento Medio Anni Simili</p>
+                    <p style='color: {color}; margin: 5px 0; font-size: 24px; font-weight: bold;'>{avg_return:.1f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col3:
                 positive_years = (similar_years['year_return'] > 0).sum()
-                st.metric("Anni Positivi", f"{positive_years}/{len(similar_years)}")
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Anni Positivi</p>
+                    <p style='color: #00ff00; margin: 5px 0; font-size: 24px; font-weight: bold;'>{positive_years}/{len(similar_years)}</p>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             st.warning(f"Nessun anno trovato con correlazione > {Config.MIN_CORRELATION:.2f}")
     
@@ -527,17 +604,33 @@ def main():
             
             st.dataframe(display_df_q, use_container_width=True)
             
-            # Statistiche
+            # Statistiche con stile personalizzato
             col1, col2, col3 = st.columns(3)
             with col1:
                 avg_corr_q = similar_quarters['correlation'].mean()
-                st.metric("Correlazione Media", f"{avg_corr_q:.3f}")
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Correlazione Media</p>
+                    <p style='color: #00ff00; margin: 5px 0; font-size: 24px; font-weight: bold;'>{avg_corr_q:.3f}</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col2:
                 avg_return_q = similar_quarters['quarter_return'].mean()
-                st.metric("Rendimento Medio Trimestri", f"{avg_return_q:.1f}%")
+                color = "#00ff00" if avg_return_q > 0 else "#ff4444"
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Rendimento Medio Trimestri</p>
+                    <p style='color: {color}; margin: 5px 0; font-size: 24px; font-weight: bold;'>{avg_return_q:.1f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col3:
                 positive_quarters = (similar_quarters['quarter_return'] > 0).sum()
-                st.metric("Trimestri Positivi", f"{positive_quarters}/{len(similar_quarters)}")
+                st.markdown(f"""
+                <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                    <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Trimestri Positivi</p>
+                    <p style='color: #00ff00; margin: 5px 0; font-size: 24px; font-weight: bold;'>{positive_quarters}/{len(similar_quarters)}</p>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             st.warning(f"Nessun trimestre trovato con correlazione > {Config.MIN_CORRELATION:.2f}")
     
@@ -545,19 +638,45 @@ def main():
     with tab3:
         st.subheader("📈 Panoramica Dati Storici")
         
-        # Statistiche generali
+        # Statistiche generali con stile personalizzato
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Periodo Dati", f"{data.index[0].year}-{data.index[-1].year}")
+            st.markdown(f"""
+            <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Periodo Dati</p>
+                <p style='color: #fafafa; margin: 5px 0; font-size: 20px; font-weight: bold;'>{data.index[0].year}-{data.index[-1].year}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.metric("Giorni Trading", f"{len(data):,}")
+            st.markdown(f"""
+            <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Giorni Trading</p>
+                <p style='color: #fafafa; margin: 5px 0; font-size: 20px; font-weight: bold;'>{len(data):,}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col3:
             current_price = data['adjusted_close'].iloc[-1]
-            st.metric("Prezzo Attuale", f"${current_price:.2f}")
+            st.markdown(f"""
+            <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>Prezzo Attuale</p>
+                <p style='color: #fafafa; margin: 5px 0; font-size: 20px; font-weight: bold;'>${current_price:.2f}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col4:
-            ytd_return = ((data[data.index.year == Config.CURRENT_YEAR]['adjusted_close'].iloc[-1] / 
-                          data[data.index.year == Config.CURRENT_YEAR]['adjusted_close'].iloc[0]) - 1) * 100
-            st.metric("YTD Return", f"{ytd_return:.2f}%")
+            ytd_data = data[data.index.year == Config.CURRENT_YEAR]
+            if len(ytd_data) > 0:
+                ytd_return = ((ytd_data['adjusted_close'].iloc[-1] / 
+                              ytd_data['adjusted_close'].iloc[0]) - 1) * 100
+                color = "#00ff00" if ytd_return > 0 else "#ff4444"
+            else:
+                ytd_return = 0
+                color = "#fafafa"
+            st.markdown(f"""
+            <div style='background-color: #262730; padding: 15px; border-radius: 5px; border: 1px solid #4a4a4a;'>
+                <p style='color: #b0b0b0; margin: 0; font-size: 14px;'>YTD Return</p>
+                <p style='color: {color}; margin: 5px 0; font-size: 20px; font-weight: bold;'>{ytd_return:.2f}%</p>
+            </div>
+            """, unsafe_allow_html=True)
         
         # Grafico storico completo
         fig_hist = go.Figure()
