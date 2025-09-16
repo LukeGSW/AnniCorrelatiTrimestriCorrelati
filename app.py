@@ -79,7 +79,7 @@ def fetch_data(ticker: str, exchange: str, start_date: str, api_key: str = None)
     Cache dei dati per 1 ora per evitare richieste ripetute
     """
     # Prima prova con EODHD se abbiamo l'API key
-    if api_key and api_key != "YOUR_API_KEY_HERE":
+    if api_key and api_key != "YOUR_API_KEY_HERE" and not api_key.startswith("la-tu"):
         try:
             endpoint = f"https://eodhistoricaldata.com/api/eod/{ticker}.{exchange}"
             params = {
@@ -105,23 +105,24 @@ def fetch_data(ticker: str, exchange: str, start_date: str, api_key: str = None)
     
     # Fallback su yfinance
     try:
-        # Mapping exchange EODHD -> yfinance ticker
-        if exchange.lower() == "cc" and ticker.lower().endswith("-usd"):
-            # Crypto: eth-usd -> ETH-USD
-            yf_ticker = ticker.upper()
-        elif exchange.lower() == "us":
-            yf_ticker = ticker.upper()
+        # Mapping intelligente del ticker per yfinance
+        if exchange.lower() == "cc":
+            # Crypto - usa il ticker così com'è ma in maiuscolo
+            yf_ticker = ticker.upper()  # eth-usd -> ETH-USD
         else:
-            yf_ticker = ticker.upper()
+            # Azioni - usa solo il simbolo senza exchange
+            yf_ticker = ticker.upper().replace('.US', '').replace('.EU', '')  # SPY.US -> SPY
             
         df = yf.download(yf_ticker, start=start_date, progress=False)
         if not df.empty:
-            df['adjusted_close'] = df['Adj Close']
-            df['returns'] = df['Adj Close'].pct_change()
+            # Standardizza i nomi delle colonne per compatibilità
+            df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
+            df['adjusted_close'] = df['Adj Close'] if 'Adj Close' in df.columns else df['Close']
+            df['returns'] = df['adjusted_close'].pct_change()
             df['cum_returns'] = (1 + df['returns']).cumprod() - 1
             return df.dropna()
     except Exception as e:
-        st.error(f"Errore nel caricamento dati: {str(e)}")
+        st.error(f"Errore nel caricamento dati con yfinance: {str(e)}")
         return pd.DataFrame()
 
 # =====================================================
@@ -393,6 +394,14 @@ def main():
     st.title("📊 Kriterion Quant - Pattern Matching Analysis")
     st.markdown("**Analisi di correlazione per identificare anni e trimestri storici simili**")
     
+    # Recupera subito la API key dai secrets (FUORI dal sidebar)
+    try:
+        api_key = st.secrets["EODHD_API_KEY"]
+        api_status = "✅ Chiave API EODHD caricata con successo dai secrets."
+    except:
+        api_key = "YOUR_API_KEY_HERE"
+        api_status = "⚠️ Chiave API EODHD non trovata nei secrets. Usando yfinance come fallback."
+    
     # Sidebar per configurazione
     with st.sidebar:
         st.header("⚙️ Configurazione")
@@ -413,18 +422,16 @@ def main():
         Config.MIN_CORRELATION = min_correlation
         Config.TOP_N_SIMILAR = top_n
         
-        # Info API
+        # Info API (solo mostra lo status)
         st.subheader("🔑 API Configuration")
-        try:
-            api_key = st.secrets["EODHD_API_KEY"]
-            st.success("✅ Chiave API EODHD caricata con successo dai secrets.")
-        except:
-            api_key = "YOUR_API_KEY_HERE"
-            st.warning("⚠️ Chiave API EODHD non trovata nei secrets. Usando yfinance come fallback.")
+        if api_key != "YOUR_API_KEY_HERE":
+            st.success(api_status)
+        else:
+            st.warning(api_status)
     
     # Carica dati
     with st.spinner(f"Caricamento dati per {ticker}..."):
-        data = fetch_data(ticker, exchange, Config.START_DATE, api_key)
+        data = fetch_data(ticker, exchange, Config.START_DATE, api_key)  # PASSA api_key qui!
     
     if data.empty:
         st.error("Impossibile caricare i dati. Verifica ticker e connessione.")
