@@ -1,0 +1,25 @@
+[theme]
+# Tema scuro professionale per finanza
+primaryColor = "#00ff00"
+backgroundColor = "#1e1e1e"
+secondaryBackgroundColor = "#2a2a2a"
+textColor = "#f0f0f0"
+font = "sans serif"
+
+[server]
+# Configurazione server
+headless = true
+enableCORS = false
+port = 8501
+
+[browser]
+# Configurazione browser
+gatherUsageStats = false
+
+[runner]
+# Magic commands
+magicEnabled = false
+
+[client]
+# Mostra errori dettagliati solo in development
+showErrorDetails = false
