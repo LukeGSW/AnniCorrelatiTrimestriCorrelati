@@ -469,7 +469,7 @@ def main():
         
         # Input ticker
         ticker = st.text_input("Ticker", value="SPY", help="Es: SPY, QQQ, AAPL, ETH-USD")
-        exchange = st.selectbox("Exchange", ["US", "CC"], 
+        exchange = st.selectbox("Exchange", ["US", "CC", "FOREX"], 
                                help="US per azioni, CC per crypto")
         
         # Parametri di analisi
